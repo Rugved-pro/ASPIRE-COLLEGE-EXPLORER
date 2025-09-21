@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, Clock } from "lucide-react"
+import clsx from "clsx"
 
 interface QuizQuestionProps {
   question: {
@@ -21,15 +22,17 @@ interface QuizQuestionProps {
   timeLimit?: number
 }
 
-export function QuizQuestion({ 
-  question, 
-  currentQuestion, 
-  totalQuestions, 
-  onAnswer, 
+export function QuizQuestion({
+  question,
+  currentQuestion,
+  totalQuestions,
+  onAnswer,
   onNext,
-  timeLimit = 30 
+  timeLimit = 30,
 }: QuizQuestionProps) {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | string[] | boolean | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | string[] | boolean>(
+    question.type === "multiselect" ? [] : null
+  )
   const [showFeedback, setShowFeedback] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [timeLeft, setTimeLeft] = useState(timeLimit)
@@ -37,73 +40,78 @@ export function QuizQuestion({
 
   const progress = (currentQuestion / totalQuestions) * 100
 
-  // Timer effect
+  // Timer
   useEffect(() => {
-    if (timeLeft > 0 && !isAnswered) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && !isAnswered) {
-      handleAnswer(null)
-    }
-  }, [timeLeft, isAnswered])
+    if (isAnswered) return
 
-  // Reset state when question changes
+    if (timeLeft <= 0) {
+      handleAnswer(question.type === "multiselect" ? [] : "")
+      return
+    }
+
+    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [timeLeft, isAnswered, question.id])
+
+  // Reset state on question change
   useEffect(() => {
-    setSelectedAnswer(null)
+    setSelectedAnswer(question.type === "multiselect" ? [] : null)
     setShowFeedback(false)
     setIsCorrect(false)
     setTimeLeft(timeLimit)
     setIsAnswered(false)
   }, [question.id, timeLimit])
 
-  const handleAnswer = (answer: string | string[] | boolean | null) => {
+  const handleAnswer = (answer: string | string[] | boolean) => {
     if (isAnswered) return
 
     setSelectedAnswer(answer)
     setIsAnswered(true)
 
-    // Check if answer is correct
+    // Check correctness
     let correct = false
     if (question.type === "multiselect") {
       const correctAnswers = question.answer as string[]
-      const selectedAnswers = answer as string[]
-      correct = correctAnswers.length === selectedAnswers.length && 
-                correctAnswers.every(ans => selectedAnswers.includes(ans))
-    } else if (question.type === "truefalse") {
-      correct = answer === question.answer
+      const selected = answer as string[]
+      correct =
+        correctAnswers.length === selected.length &&
+        correctAnswers.every(ans => selected.includes(ans))
     } else {
       correct = answer === question.answer
     }
 
     setIsCorrect(correct)
     setShowFeedback(true)
-    onAnswer(answer || (question.type === "multiselect" ? [] : ""))
+    onAnswer(answer)
   }
 
-  const handleNext = () => {
-    onNext()
-  }
+  const handleNext = () => onNext()
 
-  const getOptionClass = (option: string, index: number) => {
+  const getOptionClass = (option: string) => {
     if (!showFeedback) {
       return "glass-card p-4 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10"
     }
 
-    const isSelected = question.type === "multiselect" 
-      ? (selectedAnswer as string[])?.includes(option)
+    const isSelected =
+    question.type === "multiselect"
+      ? Array.isArray(selectedAnswer) && selectedAnswer.includes(option)
       : selectedAnswer === option
+  
 
-    if (isSelected) {
-      return isCorrect 
-        ? "glass-card p-4 rounded-lg bg-green-500/20 border-green-500 text-green-700"
-        : "glass-card p-4 rounded-lg bg-red-500/20 border-red-500 text-red-700"
-    }
-
-    const isCorrectAnswer = question.type === "multiselect"
+    const isAnswer = question.type === "multiselect"
       ? (question.answer as string[]).includes(option)
       : question.answer === option
 
-    if (isCorrectAnswer && showFeedback) {
+    if (isSelected) {
+      return clsx(
+        "glass-card p-4 rounded-lg",
+        isCorrect
+          ? "bg-green-500/20 border-green-500 text-green-700"
+          : "bg-red-500/20 border-red-500 text-red-700"
+      )
+    }
+
+    if (isAnswer && showFeedback) {
       return "glass-card p-4 rounded-lg bg-green-500/20 border-green-500 text-green-700"
     }
 
@@ -113,7 +121,7 @@ export function QuizQuestion({
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <Card className="glass-card max-w-4xl w-full p-8">
-        {/* Progress Bar */}
+        {/* Progress */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">
@@ -128,86 +136,85 @@ export function QuizQuestion({
         </div>
 
         {/* Question */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6 leading-relaxed">
-            {question.question}
-          </h2>
+        <h2 className="text-2xl font-bold text-foreground mb-6 leading-relaxed">
+          {question.question}
+        </h2>
 
-          {/* Options */}
-          {question.type === "truefalse" ? (
-            <div className="grid grid-cols-2 gap-4">
+        {/* Options */}
+        {question.type === "truefalse" ? (
+          <div className="grid grid-cols-2 gap-4">
+            {[true, false].map((val) => (
               <Button
-                onClick={() => handleAnswer(true)}
+                key={val.toString()}
+                onClick={() => handleAnswer(val)}
                 disabled={isAnswered}
-                className={`h-16 text-lg font-semibold ${
-                  showFeedback && selectedAnswer === true
-                    ? isCorrect ? "bg-green-500 hover:bg-green-500" : "bg-red-500 hover:bg-red-500"
-                    : "glass-card hover:scale-105"
-                }`}
+                className={clsx(
+                  "h-16 text-lg font-semibold",
+                  showFeedback && selectedAnswer === val
+                    ? isCorrect
+                      ? "bg-green-500 hover:bg-green-500"
+                      : "bg-red-500 hover:bg-red-500"
+                    : "glass-card hover:scale-105 transition-all"
+                )}
               >
-                True
+                {val ? "True" : "False"}
               </Button>
-              <Button
-                onClick={() => handleAnswer(false)}
-                disabled={isAnswered}
-                className={`h-16 text-lg font-semibold ${
-                  showFeedback && selectedAnswer === false
-                    ? isCorrect ? "bg-green-500 hover:bg-green-500" : "bg-red-500 hover:bg-red-500"
-                    : "glass-card hover:scale-105"
-                }`}
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {question.options?.map((option) => (
+              <div
+                key={option}
+                onClick={() => {
+                  if (question.type === "multiselect") {
+                    const current = selectedAnswer as string[]
+                    const updated = current.includes(option)
+                      ? current.filter(o => o !== option)
+                      : [...current, option]
+                    setSelectedAnswer(updated)
+                  } else {
+                    handleAnswer(option)
+                  }
+                }}
+                className={getOptionClass(option)}
               >
-                False
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {question.options?.map((option, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    if (question.type === "multiselect") {
-                      const current = (selectedAnswer as string[]) || []
-                      const newAnswer = current.includes(option)
-                        ? current.filter(opt => opt !== option)
-                        : [...current, option]
-                      setSelectedAnswer(newAnswer)
-                    } else {
-                      handleAnswer(option)
-                    }
-                  }}
-                  className={getOptionClass(option, index)}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{option}</span>
-                    {showFeedback && (
-                      <>
-                        {question.type === "multiselect" && (selectedAnswer as string[])?.includes(option) && (
-                          isCorrect ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />
-                        )}
-                        {question.type === "mcq" && selectedAnswer === option && (
-                          isCorrect ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />
-                        )}
-                      </>
-                    )}
-                  </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{option}</span>
+                  {showFeedback && (
+                    <>
+                      {question.type === "multiselect" &&
+                        Array.isArray(selectedAnswer) &&
+                        selectedAnswer.includes(option) &&
+                       (isCorrect ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                       <XCircle className="h-5 w-5 text-red-500" />
+                       ))}
+
+                      {question.type === "mcq" && selectedAnswer === option && (
+                        isCorrect ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />
+                      )}
+                    </>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* Submit button for multiselect */}
-          {question.type === "multiselect" && !isAnswered && (
-            <div className="mt-6 text-center">
-              <Button
-                onClick={() => handleAnswer(selectedAnswer as string[] || [])}
-                disabled={!selectedAnswer || (selectedAnswer as string[]).length === 0}
-                className="gradient-cta text-white px-8 py-3"
-              >
-                Submit Answer
-              </Button>
-            </div>
-          )}
-        </div>
+        {/* Multiselect Submit */}
+        {question.type === "multiselect" && !isAnswered && (
+          <div className="mt-6 text-center">
+            <Button
+              onClick={() => handleAnswer(selectedAnswer as string[])}
+              disabled={(selectedAnswer as string[]).length === 0}
+              className="gradient-cta text-white px-8 py-3"
+            >
+              Submit Answer
+            </Button>
+          </div>
+        )}
 
         {/* Feedback */}
         {showFeedback && (
@@ -218,23 +225,22 @@ export function QuizQuestion({
               ) : (
                 <XCircle className="h-5 w-5 text-red-500" />
               )}
-              <span className={`font-semibold ${isCorrect ? "text-green-700" : "text-red-700"}`}>
+              <span className={clsx("font-semibold", isCorrect ? "text-green-700" : "text-red-700")}>
                 {isCorrect ? "Correct!" : "Incorrect"}
               </span>
             </div>
             {!isCorrect && (
               <p className="text-muted-foreground">
-                The correct answer{question.type === "multiselect" ? "s were" : " was"}: {
-                  question.type === "multiselect" 
-                    ? (question.answer as string[]).join(", ")
-                    : question.answer
-                }
+                Correct answer{question.type === "multiselect" ? "s were" : " was"}:{" "}
+                {question.type === "multiselect"
+                  ? (question.answer as string[]).join(", ")
+                  : question.answer.toString()}
               </p>
             )}
           </div>
         )}
 
-        {/* Next Button */}
+        {/* Next */}
         {showFeedback && (
           <div className="text-center">
             <Button

@@ -17,7 +17,8 @@ import {
   Briefcase,
   BarChart3,
   Globe,
-  Star
+  Star,
+  RotateCcw
 } from "lucide-react"
 
 interface CareerAnalysisProps {

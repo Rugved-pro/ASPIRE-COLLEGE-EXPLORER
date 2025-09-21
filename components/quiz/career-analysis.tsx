@@ -306,6 +306,21 @@ export function CareerAnalysis({
                   </div>
                 ))}
               </div>
+              <TabsContent value="roadmap" className="space-y-6 mt-6">
+  <h3 className="text-lg font-semibold text-foreground mb-4">Career Progression</h3>
+  
+  {/* Keep your existing roadmap description if you want */}
+
+  {/* Embed PDF Viewer */}
+  <div className="mt-6">
+    <h4 className="font-semibold text-foreground mb-2">Detailed Roadmap (PDF)</h4>
+    <iframe
+      src="full-stack.pdf"
+      className="w-full h-[600px] rounded-lg border"
+    />
+  </div>
+</TabsContent>
+
             </TabsContent>
 
             <TabsContent value="salary" className="space-y-6 mt-6">

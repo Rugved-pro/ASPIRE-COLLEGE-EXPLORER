@@ -66,11 +66,13 @@ export function QuizResults({
           </div>
           <div className="glass-card p-4 rounded-lg text-center">
             <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-2xl font-bold text-foreground">You</div>
+            <div className="text-2xl font-bold text-foreground">Discover your interests</div>
             <div className="text-sm text-muted-foreground">Exploring Yourself</div>
           </div>
           <div className="glass-card p-4 rounded-lg text-center">
-            <Badge className="bg-blue-500 text-white px-3 py-1">Reflective Quiz</Badge>
+            <Users className="h-8 w-8 text-primary mx-auto mb-2" />
+            <div className="text-2xl font-bold text-foreground">Choose your career</div>
+            <div className="text-sm text-muted-foreground">Explore options</div>
           </div>
         </div>
 

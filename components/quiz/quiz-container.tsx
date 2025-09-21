@@ -6,41 +6,77 @@ import { QuizQuestion } from "./quiz-question"
 import { QuizResults } from "./quiz-results"
 import { CareerAnalysis } from "./career-analysis"
 
+// Interest Quiz for Teenagers (15–16 y/o)
 const sampleQuiz = [
   {
     id: 1,
     type: "mcq" as const,
-    question: "Which college is ranked #1 in Maharashtra?",
-    options: ["IIT Bombay", "COEP Pune", "TISS Mumbai", "MIT Pune"],
-    answer: "IIT Bombay"
+    question: "Which activity sounds most fun to you?",
+    options: ["Building a mobile app", "Writing a short story", "Helping at a hospital", "Designing a poster"],
+    answer: null
   },
   {
     id: 2,
-    type: "mcq" as const,
-    question: "Which course is NOT offered at AIIMS Delhi?",
-    options: ["Medicine", "BDS", "Engineering", "Nursing"],
-    answer: "Engineering"
+    type: "truefalse" as const,
+    question: "I enjoy solving puzzles and brain teasers.",
+    answer: null
   },
   {
     id: 3,
-    type: "truefalse" as const,
-    question: "University of Kashmir was established before 1950.",
-    answer: true
+    type: "multiselect" as const,
+    question: "Which of these do you like doing in your free time? (Select all that apply)",
+    options: ["Coding or gaming", "Drawing or painting", "Sports or outdoor games", "Helping friends with problems"],
+    answer: null
   },
   {
     id: 4,
-    type: "multiselect" as const,
-    question: "Select all engineering streams offered at NIT Srinagar.",
-    options: ["Computer Science", "Medicine", "Civil", "Mechanical"],
-    answer: ["Computer Science", "Civil", "Mechanical"]
+    type: "mcq" as const,
+    question: "If you had a free day, what would you choose?",
+    options: ["Visit a science museum", "Play football with friends", "Write poems or songs", "Volunteer at an animal shelter"],
+    answer: null
   },
   {
     id: 5,
     type: "mcq" as const,
-    question: "Which city is home to IIT Delhi?",
-    options: ["New Delhi", "Mumbai", "Srinagar", "Pune"],
-    answer: "New Delhi"
+    question: "Which word best describes you?",
+    options: ["Curious", "Creative", "Caring", "Adventurous"],
+    answer: null
   },
+  // New Questions
+  {
+    id: 6,
+    type: "mcq" as const,
+    question: "What excites you the most about the future?",
+    options: ["Artificial Intelligence", "Art and Movies", "Helping People", "Exploring New Places"],
+    answer: null
+  },
+  {
+    id: 7,
+    type: "truefalse" as const,
+    question: "I often wonder how apps, games, or websites are built.",
+    answer: null
+  },
+  {
+    id: 8,
+    type: "mcq" as const,
+    question: "Which subject do you enjoy more?",
+    options: ["Math & Science", "Languages", "Biology", "Physical Education"],
+    answer: null
+  },
+  {
+    id: 9,
+    type: "multiselect" as const,
+    question: "Pick the kinds of projects you'd love to work on:",
+    options: ["Robotics", "Creative Writing", "Medical Research", "Sports Training App"],
+    answer: null
+  },
+  {
+    id: 10,
+    type: "mcq" as const,
+    question: "If you had to choose a challenge, which one excites you?",
+    options: ["Coding a game", "Directing a short film", "Helping organize a charity drive", "Climbing a mountain"],
+    answer: null
+  }
 ]
 
 type QuizState = "start" | "question" | "results" | "career-analysis"
@@ -48,13 +84,13 @@ type QuizState = "start" | "question" | "results" | "career-analysis"
 export function QuizContainer() {
   const [currentState, setCurrentState] = useState<QuizState>("start")
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Array<{
-    question: string
-    userAnswer: string | string[] | boolean
-    correctAnswer: string | string[] | boolean
-    isCorrect: boolean
-  }>>([])
-  const [score, setScore] = useState(0)
+  const [answers, setAnswers] = useState<
+    Array<{
+      question: string
+      userAnswer: string | string[] | boolean
+    }>
+  >([])
+  const [score, setScore] = useState(0) // kept for compatibility
 
   const handleStart = () => {
     setCurrentState("question")
@@ -65,19 +101,13 @@ export function QuizContainer() {
 
   const handleAnswer = (answer: string | string[] | boolean) => {
     const question = sampleQuiz[currentQuestion]
-    const isCorrect = checkAnswer(question, answer)
-    
+
     const newAnswer = {
       question: question.question,
-      userAnswer: answer,
-      correctAnswer: question.answer,
-      isCorrect
+      userAnswer: answer
     }
 
     setAnswers(prev => [...prev, newAnswer])
-    if (isCorrect) {
-      setScore(prev => prev + 1)
-    }
   }
 
   const handleNext = () => {
@@ -99,40 +129,9 @@ export function QuizContainer() {
     setCurrentState("career-analysis")
   }
 
-  const checkAnswer = (question: any, answer: string | string[] | boolean): boolean => {
-    if (question.type === "multiselect") {
-      const correctAnswers = question.answer as string[]
-      const selectedAnswers = answer as string[]
-      return correctAnswers.length === selectedAnswers.length && 
-             correctAnswers.every(ans => selectedAnswers.includes(ans))
-    } else if (question.type === "truefalse") {
-      return answer === question.answer
-    } else {
-      return answer === question.answer
-    }
-  }
-
+  // For now, hardcode to always suggest CSE
   const getCareerSuggestions = () => {
-    // Simple career suggestion based on quiz performance and answers
-    const engineeringAnswers = answers.filter(a => 
-      a.question.includes("engineering") || 
-      a.question.includes("IIT") || 
-      a.question.includes("NIT")
-    ).length
-
-    const medicalAnswers = answers.filter(a => 
-      a.question.includes("AIIMS") || 
-      a.question.includes("Medicine") || 
-      a.question.includes("medical")
-    ).length
-
-    if (engineeringAnswers >= 2) {
-      return ["Software Engineering", "Data Science", "Product Management"]
-    } else if (medicalAnswers >= 2) {
-      return ["Medicine", "Biotechnology", "Healthcare Management"]
-    } else {
-      return ["Business Management", "Finance", "Marketing"]
-    }
+    return ["Computer Science & Engineering (CSE)"]
   }
 
   if (currentState === "start") {

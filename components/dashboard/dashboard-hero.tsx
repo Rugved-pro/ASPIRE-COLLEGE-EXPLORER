@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowRight, BookOpen, Users } from "lucide-react"
+import { ArrowRight, BookOpen, Users, Brain } from "lucide-react"
 
 interface DashboardHeroProps {
   userName: string
@@ -44,6 +44,12 @@ export function DashboardHero({ userName, hasCompletedAptitude }: DashboardHeroP
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button variant="outline" className="border-primary/20 hover:border-primary bg-transparent" asChild>
+                <Link href="/quiz">
+                  <Brain className="mr-2 h-4 w-4" />
+                  Take Career Quiz
+                </Link>
+              </Button>
+              <Button variant="outline" className="border-primary/20 hover:border-primary bg-transparent" asChild>
                 <Link href="/colleges">
                   <BookOpen className="mr-2 h-4 w-4" />
                   Explore Recommended Colleges
@@ -52,9 +58,12 @@ export function DashboardHero({ userName, hasCompletedAptitude }: DashboardHeroP
             </>
           ) : (
             <>
-              <Button className="gradient-cta text-white hover:opacity-90 group">
-                Take the Aptitude Test
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <Button className="gradient-cta text-white hover:opacity-90 group" asChild>
+                <Link href="/quiz">
+                  <Brain className="mr-2 h-4 w-4" />
+                  Take Career Quiz
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button variant="outline" className="border-primary/20 hover:border-primary bg-transparent" asChild>
                 <Link href="/colleges">

@@ -16,6 +16,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
   const navigationItems = [
     { id: "dashboard", name: "Dashboard", icon: Home, href: "/dashboard" },
+    { id: "quiz", name: "Career Quiz", icon: Brain, href: "/quiz" },
     { id: "career-explorer", name: "Career Explorer", icon: Brain, href: "/career-explorer" },
     { id: "colleges", name: "College Directory", icon: GraduationCap, href: "/colleges" },
     { id: "mentorship", name: "Mentorship & Experts", icon: Users, href: "/mentorship" },
